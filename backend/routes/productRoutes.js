@@ -1,9 +1,9 @@
-// routes/productRoutes.js
-
 const express = require("express");
 const { addProduct, updateProduct, sellProduct } = require("../controllers/productController");
 const { check } = require("express-validator");
 const authMiddleware = require("../middleware/authMiddleware");
+const Product = require("../model/Product");
+const Transaction = require("../model/Transaction");
 
 const router = express.Router();
 
@@ -62,5 +62,17 @@ router.post(
   ],
   sellProduct
 );
+
+// Get All Transactions (Admin only)
+router.get("/transactions", authMiddleware, async (req, res) => {
+  if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
+
+  try {
+    const transactions = await Transaction.find().populate("product");
+    res.json(transactions);
+  } catch (err) {
+    res.status(500).send("Server Error");
+  }
+});
 
 module.exports = router;
